@@ -1,6 +1,15 @@
 # File per verificare il grafo primadi collegarlo all'interfaccia grafica
+from model.fermata import Fermata
 from model.model import Model
 model = Model()
-model.buildGraph()
+model.buildGraphPesato()
 print(f"Num nodi: {model.getNumNodi()}")
 print(f"Num archi: {model.getNumArchi()}")
+f = Fermata(2, "Abbesses",2.33855,48.8843)
+nodesBFS = model.getBFSNodesFromEdges(f)
+# for n in nodesBFS:
+#     print(n)
+
+archimaggiori = model.getArchiPesoMaggiore()
+for a in archimaggiori:
+    print(a)
