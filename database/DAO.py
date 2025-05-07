@@ -1,4 +1,5 @@
 from database.DB_connect import DBConnect
+from model.connessione import Connessione
 from model.fermata import Fermata
 
 
@@ -51,8 +52,24 @@ class DAO():
         cursor.execute(query,(u.id_fermata,))
 
         for row in cursor:
-            result.append(row)
+            result.append(Connessione(**row))
         cursor.close()
         conn.close()
-        return len(result) > 0 # se len = 0 non ho un arco e
-                               # non aggiungo, altrimenti aggiungo
+        return result
+
+    @staticmethod
+    def getAllEdges():
+        conn = DBConnect.get_connection()
+
+        result = []
+
+        cursor = conn.cursor(dictionary=True)
+        query = """Select *
+                from connessione c"""
+        cursor.execute(query,)
+
+        for row in cursor:
+            result.append(Connessione(**row))
+        cursor.close()
+        conn.close()
+        return result
