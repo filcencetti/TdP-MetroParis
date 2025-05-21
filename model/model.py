@@ -1,4 +1,5 @@
 from datetime import datetime
+import geopy.distance
 
 from database.DAO import DAO
 import networkx as nx
@@ -11,10 +12,23 @@ class Model:
         for f in self._fermate:
             self._idMapFermate[f.id_fermata] = f
 
+    def getShortestPath(self, u, v): # cerco dijkstra dalla libreria e scelgo l'implementazione più utile (single_source_dijkstra)
+        return nx.single_source_dijkstra(self._grafo, u, v)
+
     def buildGraphPesato(self):
         self._grafo.clear()
         self._grafo.add_nodes_from(self._fermate)
-        self.addEdgesPesatiV2()
+        self.addEdgesPEsatiTempi() # oppure addEdgesPesati o addEdgesPesatiV2
+
+    def addEdgesPEsatiTempi(self):
+        """AQggiunge archi con peso = tempo di percorrenza dell'arco"""
+        self._grafo.clear_edges()
+        allEdges = DAO.getAllEdgesVel()
+        for e in allEdges:
+            u = self._idMapFermate[e[0]]
+            v = self._idMapFermate[e[1]]
+            peso = getTraversalTime(u,v,e[2])
+            self._grafo.add_edge(u,v,weight=peso) # nella query seleziono la velocità massima quindi il peso è il minimo
 
     def addEdgesPesati(self): # alternativa = modificare la query
         self._grafo.clear_edges()
@@ -134,3 +148,10 @@ class Model:
     @property
     def fermate(self):
         return self._fermate
+
+def getTraversalTime(u,v,vel):
+    dist = geopy.distance.distance((u.coordX,u.coordY),
+                                   (v.coordX,v.coordY)).km # in km
+    time = dist/vel * 60 # in minuti
+    return time
+

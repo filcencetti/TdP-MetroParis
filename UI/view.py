@@ -44,6 +44,9 @@ class View(ft.UserControl):
                                              on_click=self._controller.handleCercaRaggiungibili,
                                              disabled = True)
 
+        self._btnCercaPercorso = ft.ElevatedButton(text="Cerca Percorso",
+                                                   on_click = self._controller.handleCerca,
+                                                   disabled = True)
 
         #Load elements in DD
         self._controller.loadFermate(self._ddStazPartenza)
@@ -54,6 +57,7 @@ class View(ft.UserControl):
                        self._ddStazPartenza,
                        self._ddStazArrivo,
                        self._btnCalcola,
+                       self._btnCercaPercorso,
                        ], alignment=ft.MainAxisAlignment.CENTER, spacing=30)
 
         # Row with listview
@@ -75,3 +79,9 @@ class View(ft.UserControl):
     @controller.setter
     def controller(self, controller):
         self._controller = controller
+
+    def create_alert(self, message):
+        dlg = ft.AlertDialog(title=ft.Text(message))
+        self._page.dialog = dlg
+        dlg.open = True
+        self._page.update()
