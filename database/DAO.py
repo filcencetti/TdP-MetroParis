@@ -84,3 +84,45 @@ class DAO():
         cursor.close()
         conn.close()
         return result
+
+    @staticmethod
+    def getWeightedEdges():
+        conn = DBConnect.get_connection()
+
+        result = []
+
+        cursor = conn.cursor()
+        query = """
+                select id_stazP, id_stazA, count(id_linea)
+                from connessione 
+                group by id_stazP, id_stazA
+                """
+
+        cursor.execute(query)
+
+        for row in cursor:
+            result.append(row)
+        cursor.close()
+        conn.close()
+        return result
+
+    @staticmethod
+    def getOrientedEdges():
+        conn = DBConnect.get_connection()
+
+        result = []
+
+        cursor = conn.cursor()
+        query = """
+                select id_stazP, id_stazA, velocita 
+                from connessione c, linea l
+                where c.id_linea = l.id_linea
+                """
+
+        cursor.execute(query)
+
+        for row in cursor:
+            result.append(row)
+        cursor.close()
+        conn.close()
+        return result

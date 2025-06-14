@@ -9,7 +9,8 @@ class Controller:
         self._model = model
 
     def handleCreaGrafo(self,e):
-        self._model.buildGraph()
+        # self._model.buildGraph()
+        self._model.buildOrientedGraph()
         self._view._ddStazPartenza.disabled = False
         self._view.lst_result.controls.append(ft.Text("Grafo creato correttamente!!!"))
         self._view.lst_result.controls.append(ft.Text(f"Numero di nodi: {self._model._graph.number_of_nodes()} \n"
@@ -29,7 +30,12 @@ class Controller:
         self._view.update_page()
 
     def handleCercaRaggiungibili(self,e):
-        pass
+        self._view.lst_result.controls.clear()
+        path = self._model.getPath(self._fermataPartenza,self._fermataArrivo)
+        self._view.lst_result.controls.append(ft.Text(f"Percorso più breve tra {self._fermataPartenza} e {self._fermataArrivo}"))
+        for node in path:
+            self._view.lst_result.controls.append(ft.Text(node))
+        self._view.update_page()
 
     def loadFermate(self, dd: ft.Dropdown()):
         fermate = self._model.fermate
@@ -59,4 +65,5 @@ class Controller:
             self._fermataArrivo = None
         else:
             self._fermataArrivo = e.control.data
+            self._view._btnCalcola.disabled = False
             self.handleRaggiungibili()
