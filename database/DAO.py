@@ -2,7 +2,6 @@ from database.DB_connect import DBConnect
 from model.connessione import Connessione
 from model.fermata import Fermata
 
-
 class DAO():
 
     @staticmethod
@@ -12,7 +11,10 @@ class DAO():
         result = []
 
         cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM fermata"
+        query = """
+                select * 
+                from fermata
+                 """
         cursor.execute(query)
 
         for row in cursor:
@@ -22,37 +24,43 @@ class DAO():
         return result
 
     @staticmethod
-    def basConnessione(u:Fermata,v:Fermata):
-        conn = DBConnect.get_connection()
+    def hasConnessione(u: Fermata, v: Fermata):
+            conn = DBConnect.get_connection()
 
-        result = []
+            result = []
 
-        cursor = conn.cursor(dictionary=True)
-        query = """Select *
-                from connessione c
-                where c.id_stazP = %s and c.id_stazA = %s"""
-        cursor.execute(query,(u.id_fermata,v.id_fermata))
+            cursor = conn.cursor(dictionary=True)
+            query = """SELECT *
+                       FROM connessione c
+                       where c.id_stazP = %s
+                         and c.id_stazA = %s"""
 
-        for row in cursor:
-            result.append(row)
-        cursor.close()
-        conn.close()
-        return len(result) > 0 # se len = 0 non ho un arco e
-                               # non aggiungo, altrimenti aggiungo
+            cursor.execute(query, (u.id_fermata, v.id_fermata))
+
+            for row in cursor:
+                result.append(row)
+            cursor.close()
+            conn.close()
+            return len(result) > 0
+
     @staticmethod
-    def getVicini(u:Fermata):
+    def getNeighbors(u: Fermata):
         conn = DBConnect.get_connection()
 
         result = []
 
         cursor = conn.cursor(dictionary=True)
-        query = """Select *
-                from connessione c
-                where c.id_stazP = %s"""
-        cursor.execute(query,(u.id_fermata,))
+        query = """
+                    select id_stazP, id_stazA
+                    from connessione
+                    where id_stazP = %s
+                    group by  id_stazP, id_stazA
+                    """
+
+        cursor.execute(query, (u.id_fermata,))
 
         for row in cursor:
-            result.append(Connessione(**row))
+            result.append(row["id_stazA"])
         cursor.close()
         conn.close()
         return result
@@ -64,32 +72,15 @@ class DAO():
         result = []
 
         cursor = conn.cursor(dictionary=True)
-        query = """Select *
-                from connessione c"""
-        cursor.execute(query,)
+        query = """
+                select *
+                from connessione
+                """
 
-        for row in cursor:
-            result.append(Connessione(**row))
-        cursor.close()
-        conn.close()
-        return result
-
-    @staticmethod
-    def getallEdgesPesati():
-        conn = DBConnect.get_connection()
-
-        result = []
-
-        cursor = conn.cursor(dictionary=True)
-        query = """Select id_stazP, id_stazA, COUNT(*) as n
-                   from connessione c
-                   group by id_stazA, id_stazP
-                   order by n"""
         cursor.execute(query)
 
         for row in cursor:
-            result.append((row["id_stazP"], row["id_stazA"], row["n"]))
-
+            result.append(Connessione(**row))
         cursor.close()
         conn.close()
         return result

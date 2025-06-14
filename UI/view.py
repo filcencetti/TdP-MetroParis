@@ -38,17 +38,14 @@ class View(ft.UserControl):
 
         # Row with controls
         self._btnCrea = ft.ElevatedButton(text="Crea Grafo", on_click=self._controller.handleCreaGrafo)
-        self._ddStazPartenza = ft.Dropdown(label="Stazione di Partenza")
-        self._ddStazArrivo = ft.Dropdown(label="Stazione di Arrivo")
-        self._btnCalcola = ft.ElevatedButton(text="Calcola Raggiungibili",
-                                             on_click=self._controller.handleCercaRaggiungibili,
-                                             disabled = True)
+        self._ddStazPartenza = ft.Dropdown(label="Stazione di Partenza", disabled=True)
+        self._ddStazArrivo = ft.Dropdown(label="Stazione di Arrivo", disabled=True)
+        self._btnCalcola = ft.ElevatedButton(text="Calcola Raggiungibili", on_click=self._controller.handleCercaRaggiungibili, disabled=True)
 
 
         #Load elements in DD
         self._controller.loadFermate(self._ddStazPartenza)
         self._controller.loadFermate(self._ddStazArrivo)
-
 
         row2 = ft.Row([self._btnCrea,
                        self._ddStazPartenza,

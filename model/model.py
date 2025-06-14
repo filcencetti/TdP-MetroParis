@@ -1,135 +1,55 @@
-from datetime import datetime
-
 from database.DAO import DAO
 import networkx as nx
 
 class Model:
     def __init__(self):
         self._fermate = DAO.getAllFermate()
-        self._grafo = nx.DiGraph()
-        self._idMapFermate = {} #dizionario per associare le fermate al proprio id
-        for f in self._fermate:
-            self._idMapFermate[f.id_fermata] = f
-
-    def buildGraphPesato(self):
-        self._grafo.clear()
-        self._grafo.add_nodes_from(self._fermate)
-        self.addEdgesPesatiV2()
-
-    def addEdgesPesati(self): # alternativa = modificare la query
-        self._grafo.clear_edges()
-        allEdges = DAO.getAllEdges()
-        for edge in allEdges:
-            u = self._idMapFermate[edge.id_stazP]
-            v = self._idMapFermate[edge.id_stazA]
-
-            if self._grafo.has_edge(u, v):
-                self._grafo[u][v]['weight'] += 1
-
-            else:
-                self._grafo.add_edge(u,v,weight=1)
-
-    def addEdgesPesatiV2(self):
-        self._grafo.clear_edges()
-        allEdgesPesati = DAO.getallEdgesPesati()
-
-        for e in allEdgesPesati:
-            self._grafo.add_edge(
-            self._idMapFermate[e[0]],
-            self._idMapFermate[e[1]],
-            weight= e[2])
-
-    def getArchiPesoMaggiore(self):
-        edges = self._grafo.edges(data=True) # data = True dato che mi servono pure i pesi
-        res = []
-        for e in edges:
-            if self._grafo.get_edge_data(e[0],e[1])["weight"] > 1:
-                res.append(e)
-
-        print(res)
-        return res
-
-    # 4 alternative che ritornano gli stessi nodi
-    def getBFSNodesFromTree(self,source):
-        tree = nx.bfs_tree(self._grafo,source)
-        archi = list(tree.edges())
-        nodi = list(tree.nodes())
-        return nodi[1:]
-
-    def getDFSNodesFromTree(self,source):
-        tree = nx.dfs_tree(self._grafo,source)
-        nodi = list(tree.nodes())
-        return nodi[1:]
-
-    def getBFSNodesFromEdges(self,source):
-        archi = nx.bfs_edges(self._grafo,source)
-        res = list()
-        for u,v in archi:
-            res.append(v)
-        return res
-
-    def getDFSNodesFromEdges(self,source):
-        archi = nx.dfs_edges(self._grafo,source)
-        res = list()
-        for u,v in archi:
-            res.append(v)
-        return res
-
+        self._graph = nx.Graph()
+        self._idMap = {}
+        for node in self._fermate:
+            self._idMap[node.id_fermata] = node
 
     def buildGraph(self):
-        #Aggiungiamo i nodi
-        self._grafo.add_nodes_from(self._fermate)
+        self._graph.clear()
+        self._graph.add_nodes_from(self._fermate)
 
-        # tic = datetime.now()
-        # self.addEdges1()
-        # toc =datetime.now()
-        # print(toc-tic)
-        #
-        # tic = datetime.now()
-        # self.addEdges2()
-        # toc = datetime.now()
-        # print(toc - tic)
+        # self.getAllEdges1()
+        # print(self._graph.number_of_edges())
+        # self._graph.remove_edges_from(self._graph.edges())
+        # self.getAllEdges2()
+        # print(self._graph.number_of_edges())
+        # self._graph.remove_edges_from(self._graph.edges())
+        self.getAllEdges3()
+        print(self._graph.number_of_edges())
 
-        tic = datetime.now()
-        self.addEdges3()
-        toc = datetime.now()
-        # print(toc - tic)
+    def getAllEdges1(self):
+        for node1 in self._graph.nodes():
+            for node2 in self._graph.nodes():
+                if DAO.hasConnessione(node1, node2):
+                    self._graph.add_edge(node1, node2)
+        return
 
+    def getAllEdges2(self):
+        for node in self._graph.nodes():
+            neighbors = DAO.getNeighbors(node)
+            for neighbor in neighbors:
+                self._graph.add_edge(node, self._idMap[neighbor])
+        return
 
-    def addEdges1(self):
-        """Aggiungo gli archi citando con doppio ciclo sui nodi e
-        testando se per ogni coppia esiste una connessione"""
-        for u in self._fermate:
-            for v in self._fermate:
-                if DAO.basConnessione(u,v):
-                    self._grafo.add_edge(u,v)
-
-
-    def addEdges2(self) :
-        """
-        Ciclo solo una volta e faccio una query pert trovare tutti i vicini
-
-        """
-        for u in self._fermate:
-            for v in DAO.getVicini(u):
-                self._grafo.add_edge(u,self._idMapFermate[v.id_stazA])
-
-    def addEdges3(self):
-        """
-        Faccio una query unica che prende tutti gli archi e poi ciclo qui
-
-        """
+    def getAllEdges3(self):
         allEdges = DAO.getAllEdges()
         for edge in allEdges:
-            u = self._idMapFermate[edge.id_stazP]
-            v = self._idMapFermate[edge.id_stazA]
-            self._grafo.add_edge(u,v)
+            self._graph.add_edge(self._idMap[edge.id_stazP],self._idMap[edge.id_stazA])
+        return
 
-    def getNumNodi(self):
-        return len(self._grafo.nodes)
+    def bfsSearch(self,source):
+        tree = nx.bfs_tree(self._graph,source)
+        return list(tree.nodes())
 
-    def getNumArchi(self):
-        return len(self._grafo.edges)
+    def dfsSearch(self,source):
+        tree = nx.dfs_tree(self._graph,source)
+        return list(tree.nodes())
+
 
     @property
     def fermate(self):
